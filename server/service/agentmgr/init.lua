@@ -22,6 +22,36 @@ function mgrplayer()
 	return m
 end
 
+function get_online_count()
+
+	local count = 0
+	for playerid, player in pairs(players) do
+		count = count + 1
+	end
+	return count
+end
+
+s.resp.shutdown = function(source, num)
+
+	local count = get_online_count()
+	local n = 0
+	for playerid, player in pairs(players) do
+		skynet.fork(s.resp.reqkick, nil, playerid, "close server")
+		n = n + 1
+		if n>= num then
+			break
+		end
+	end
+	while true do
+		skynet.sleep(1)
+		local new_count = get_online_count()
+		skynet.error("shutdown online:" .. new_count)
+		if new_count <= 0 or new_count <= count - num then
+			return new_count
+		end
+	end
+end
+
 s.resp.reqlogin = function(source, playerid, node, gate)
 	
 	local mplayer = players[playerid]
@@ -55,7 +85,6 @@ s.resp.reqlogin = function(source, playerid, node, gate)
 	player.STATUS = STATUS.LOGIN
 	players[playerid] = player
 	local agent = s.call(node, "nodemgr", "newservice", "agent", "agent", playerid)
-	skynet.error("lllll2", node, playerid, agent)
 	player.agent = agent
 	player.status = STATUS.GAME
 	return true, agent

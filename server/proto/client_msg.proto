@@ -1,0 +1,102 @@
+package client_msg;
+
+// cmd:1
+message ReqLogin {
+	required int32 id = 1;
+	required string pw = 2;
+}
+
+// cmd:2
+message ResLogin {
+	optional int32 code = 1; //0:登录成功，1：登录失败
+	optional string result = 2; //原因
+}
+
+// cmd:3
+message ReqEnter {
+
+}
+
+// cmd:4
+message ResEnter {
+	optional int32 code = 1; //0:进入成功，1:进入失败
+	optional string result = 2; //原因
+}
+
+// cmd:5
+message ReqLeaveScene {
+
+}
+
+// cmd:6
+message ResLeaveScene {
+
+}
+
+message ball {
+	optional int32 id = 1; //玩家ID
+	optional int32 x = 2; //x坐标
+	optional int32 y = 3; //y坐标
+	optional int32 size = 4; //半径
+	optional int32 speed = 5; //速度
+	optional int32 speedx = 6; //x方向速度
+	optional int32 speedy = 7; //y方向速度
+}
+
+// cmd:7
+message ReqShift {
+	optional int32 x = 1; // x方向速度
+	optional int32 y = 2; // y方向速度
+}
+
+// cmd:8
+message ResShift {
+	optional ball b = 1;
+}
+
+// cmd:9
+message InfLeaveScene {
+	optional int32 id = 1;
+}
+
+// cmd:10
+message InfEnter {
+	optional ball b = 1;
+}
+
+// cmd:11
+message InfBallList {
+	repeated ball balls = 1;
+}
+
+message food {
+	optional int32 id = 1; //食物ID
+	optional int32 x = 2; //x坐标
+	optional int32 y = 3; //y坐标
+	optional int32 size = 4; //半径
+}
+
+// cmd:12
+message InfFoodList {
+	repeated food foods = 1;
+}
+
+// cmd:13
+message InfMove {
+	optional int32 id = 1; //玩家ID
+	optional int32 x = 2; //x坐标
+	optional int32 y = 3; //y坐标
+
+}
+
+// cmd:14
+message InfAddFood {
+	repeated food foods = 1;
+}
+
+// cmd:15
+message InfEatFood {
+	optional int32 id = 1;
+	optional int32 fid = 2;
+	optional int32 size = 3;
+}

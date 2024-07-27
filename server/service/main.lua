@@ -2,6 +2,7 @@ local skynet = require "skynet"
 local skynet_manager = require "skynet.manager"
 local runconfig = require "runconfig"
 local cluster = require "skynet.cluster"
+local pb = require "protobuf"
 
 skynet.start(function()
 	skynet.error("[start main]")
@@ -33,6 +34,14 @@ skynet.start(function()
 	else
 		local proxy = cluster.proxy(anode, "agentmgr")
 		skynet.name("agentmgr", proxy)
+	end
+
+	if mynode == anode then
+		local srv = skynet.newservice("admin", "admin", 0)
+		skynet.name("admin", srv)
+	else
+		local proxy = cluster.proxy(anode, "admin")
+		skynet.name("admin", proxy)
 	end
 
 	for _, sid in pairs(runconfig.scene[mynode] or {}) do

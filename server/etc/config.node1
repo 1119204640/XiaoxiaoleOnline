@@ -12,8 +12,8 @@ lua_path = "./etc/?.lua;" .. "./lualib/?.lua;" .. "./skynet/lualib/?.lua;" .. ".
 lua_cpath = "./luaclib/?.so;" .. "./skynet/luaclib/?.so"
 
 -- 后台模式
--- daemon = "./skynet.pid"
--- logger = "./userlog"
+daemon = "./skynet.pid"
+logger = "./userlog"
 
 -- 节点
 node = "node1"

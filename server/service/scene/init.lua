@@ -1,7 +1,25 @@
 local skynet = require "skynet"
 local s = require "service"
+local protocol = require "protocol"
+local pb = require "protobuf"
+pb.register_file("/root/workspace/git_project/XiaoxiaoleOnline/server/proto/client_msg.pb")
 
 s.client = {}
+-- source是自带的,skynet.send自带的第一个参数
+s.resp.client = function(source, cmd, msg)
+
+	s.gate = source
+	local cmd_name = protocol.GetProtocolName(cmd)
+	if s.client[cmd_name] then
+		local ret_msg, ret_cmd = s.client[cmd_name](msg, source, cmd_name, cmd)
+		if ret_msg then
+			skynet.send(source, "lua", "send", s.id, ret_msg, ret_cmd)
+		end
+	else
+		skynet.error("s.resp.client fail", cmd)
+	end
+end
+
 
 local balls = {}
 local foods = {}
@@ -19,6 +37,7 @@ function ball()
 		size = 2,
 		speedx = 0,
 		speedy = 0,
+		speed = 5,
 	}
 
 	return m
@@ -37,32 +56,40 @@ end
 
 local function balllist_msg()
 
-	local msg = {"balllist"}
+	local msg = { balls = {} }
 	for i, v in pairs(balls) do
-		table.insert(msg, v.playerid)
-		table.insert(msg, v.x)
-		table.insert(msg, v.y)
-		table.insert(msg, v.size)
+		local ball = {}
+		ball.id = v.playerid
+		ball.x = v.x
+		ball.y = v.y
+		ball.y = v.size
+		table.insert(msg.balls, ball)
 	end
 
-	return msg
+	local pb_msg = pb.encode("client_msg.InfBallList", msg)
+	return pb_msg
 end
 
 local function foodlist_msg()
 
-	local msg = {"foodlist"}
+	local msg = { foods = {} }
 	for i, v in pairs(foods) do
-		table.insert(msg, v.id)
-		table.insert(msg, v.x)
-		table.insert(msg, v.y)
+		local food = {}
+		food.id = v.id
+		food.x = v.x
+		food.y = v.y
+		foode.size = v.size
+		table.insert(msg.foods, food)
 	end
-	return msg
+
+	local pb_msg = pb.encode("client_msg.InfFoodList", msg)
+	return pb_msg
 end
 
-function broadcast(msg)
+function broadcast(msg, cmd)
 
 	for i, v in pairs(balls) do
-		s.send(v.node, v.agent, "send", msg)
+		s.send(v.node, v.agent, "send", msg, cmd)
 	end
 end
 
@@ -76,19 +103,21 @@ s.resp.enter = function(source, playerid, node, agent)
 	b.node = node
 	b.agent = agent
 
-	local entermsg = {"enter", playerid, b.x, b.y, b.size}
-	broadcast(entermsg)
+	local entermsg = {b = {id = playerid, x = b.x, y = b.y, size = b.size}}
+	local pb_msg = pb.encode("client_msg.InfEnter", entermsg)
+	broadcast(pb_msg, cmd, 10)
 
 	balls[playerid] = b
-	local ret_msg = {"enter", 0, "进入成功"}
-	s.send(b.node, b.agent, "send", ret_msg)
+	local ret_msg = {code = 0, result = "进入成功"}
+	pb_msg = pb.encode("client_msg.ResEnter", ret_msg)
+	s.send(b.node, b.agent, "send", pb_msg, 4)
 
-	s.send(b.node, b.agent, "send", balllist_msg())
-	s.send(b.node, b.agent, "send", foodlist_msg())
+	s.send(b.node, b.agent, "send", balllist_msg(), 11)
+	s.send(b.node, b.agent, "send", foodlist_msg(), 12)
 	return true
 end
 
-s.resp.leave = function(source, playerid, x, y)
+s.resp.leave = function(source, playerid)
 
 	if not balls[playerid] then
 		return false
@@ -96,18 +125,26 @@ s.resp.leave = function(source, playerid, x, y)
 
 	balls[playerid] = nil
 
-	local leavemsg = {"leave", playerid}
-	broadcast(leavemsg)
+	local leavemsg = {id = playerid}
+	local pb_msg = pb.encode("client_msg.InfLeaveScene", leavemsg)
+	broadcast(pb_msg, 9)
 end
 
-s.resp.shift = function(source, playerid, x, y)
+s.client.ReqShift = function(msg, source, cmd_name, cmd)
 
 	local b = balls[playerid]
 	if not b then
 		return false
 	end
+	local umsg = pb.decode("client_msg." .. cmd_name, msg)
+	local x = umsg.x
+	local y = umsg.y
 	b.speedx = x
 	b.speedy = y
+
+	local ball_msg = {b = {id = playerid, x = b.x, y = b.y, size = b.size, speed = b.speed, speedx = b.speedx, speedy = b.speedy}}
+	local pb_msg = pb.encode("client_msg.ResShift", msg)
+	broadcast(pb_msg, cmd, 8)
 end
 
 function update(frame)
@@ -127,7 +164,7 @@ s.init = function()
 				skynet.error(err)
 			end
 			local etime = skynet.now()
-			local waittime = frame * 20 - (etime - stime)
+			local waittime = frame * 10 - (etime - stime)
 			if waittime <= 0 then
 				waittime = 2
 			end
@@ -137,12 +174,15 @@ s.init = function()
 end
 
 function move_update()
+	local cmd = 13
+
 	for i, v in pairs(balls) do
-		v.x = v.x + v.speedx * 0.2
-		v.y = v.y + v.speedy * 0.2
+		v.x = v.x + v.speedx * v.speed
+		v.y = v.y + v.speedy * v.speed
 		if v.speedx ~= 0 or v.speedy ~= 0 then
-			local msg = {"move", v.playerid, v.x, v.y}
-			broadcast(msg)
+			local msg = {id = v.playerid, vx = v.x, vy = v.y}
+			pb_msg = pb.encode("client_msg.InfMove", msg)
+			broadcast(pb_msg, cmd)
 		end
 	end
 end
@@ -162,19 +202,28 @@ function food_update()
 	f.id = food_maxid
 	foods[f.id] = f
 
-	local msg = {"addfood", f.id, f.x, f.y}
-	broadcast(msg)
+	local cmd = 14
+	local msg = { 
+		foods = {
+			{id = f.id, x = f.x, y = f.y},
+		}
+	}
+	pb_msg = pb.encode("client_msg.InfAddFood", msg)
+	broadcast(pb_msg, cmd)
 end
 
 function eat_update()
+
+	local cmd = 15
 
 	for pid, b in pairs(balls) do
 		for fid, f in pairs(foods) do
 			if (b.x - f.x) ^ 2 + (b.y - f.y) ^ 2 < b.size ^ 2 then
 				b.size = b.size + 1
 				food_count = food_count - 1
-				local msg = {"eat", b.playerid, fid, b.size}
-				broadcast(msg)
+				local msg = {id = b.playerid, fid = fid, size = b.size}
+				pb_msg = pb.encode("client_msg.InfEatFood", msg)
+				broadcast(pb_msg, cmd)
 				foods[fid] = nil
 			end
 		end

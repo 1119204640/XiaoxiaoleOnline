@@ -2,6 +2,9 @@ local skynet = require "skynet"
 local s = require "service"
 local runconfig = require "runconfig"
 local mynode = skynet.getenv("node")
+local protocol = require "protocol"
+local pb = require "protobuf"
+pb.register_file("/root/workspace/git_project/XiaoxiaoleOnline/server/proto/client_msg.pb")
 
 s.snode = nil
 s.sname = nil
@@ -23,22 +26,33 @@ local function random_scene()
 	return scenenode, sceneid
 end
 
-s.client.enter = function(msg)
+s.client.ReqEnter = function(msg)
+	local reply = {}
+	local reply_name = "client_msg.ResEnter"
 	if s.sname then
-		return {"enter", 1, "已在场景"}
+		reply.code = 1
+		reply.result = "已在场景"
+		local pb_reply = pb.encode(reply_name, reply)
+		return pb_reply, 4
 	end
 	local snode, sid = random_scene()
 	local sname = "scene" .. sid
 	local isok = s.call(snode, sname, "enter", s.id, mynode, skynet.self())
 	if not isok then
-		return {"enter", 1, "进入失败"}
+		reply.code = 1
+		reply.result = "进入失败"
+		local pb_reply = pb.encode(reply_name, reply)
+		return pb_reply, 4
 	end
 	s.snode = snode
 	s.sname = sname
-	return nil
+	reply.code = 0
+	reply.result = "进入成功"
+	local pb_reply = pb.encode(reply_name, reply)
+	return pb_reply, 4
 end
 
-s.leave_scene = function()
+s.client.ReqLeavaScene = function()
 
 	if not s.sname then
 		return
@@ -46,15 +60,17 @@ s.leave_scene = function()
 	s.call(s.snode, s.sname, "leave", s.id)
 	s.snode = nil
 	s.sname = nil
+	local reply = {}
+	local reply_name = "client_msg.ResLeaveScene"
+	local pb_reply = pb.encode(reply_name, reply)
+	return pb_reply, 6
 end
 
-s.client.shift = function(msg)
+s.client.ReqShift = function(msg, source, cmd_name, cmd)
 
 	if not s.sname then
 		return
 	end
 
-	local x = msg[2] or 0
-	local y = msg[3] or 0
-	s.call(s.snode, s.sname, "shift", s.id, x, y)
+	s.call(s.snode, s.sname, "client", cmd, msg)
 end
