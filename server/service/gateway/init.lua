@@ -4,6 +4,7 @@ local socket = require "skynet.socket"
 local runconfig = require "runconfig"
 local protocol = require "protocol"
 local util = require "util"
+local log = require "log"
 
 conns = {} -- [fd] = conn
 players = {}  -- [playerid] = gateplayer
@@ -77,7 +78,7 @@ s.resp.sure_agent = function(source, fd, playerid, agent)
 	gplayer.agent = agent
 	gplayer.conn = conn
 	players[playerid] = gplayer
-	skynet.error("sure_agent", gplayer, playerid, agent, conn)
+	log.info("sure_agent", gplayer, playerid, agent, conn)
 
 	return true
 end
@@ -121,7 +122,7 @@ end
 
 local process_msg = function(fd, cmd, msg)
 
-	skynet.error("recv " .. fd .. " [" .. cmd .. "] ")
+	log.info("recv " .. fd .. " [" .. cmd .. "] ")
 
 	local conn = conns[fd]
 	local playerid = conn.playerid
@@ -135,7 +136,6 @@ local process_msg = function(fd, cmd, msg)
 	else
 		local gplayer = players[playerid]
 		local agent = gplayer.agent
-		skynet.error("process_msg", agent, gplayer, playerid)
 		skynet.send(agent, "lua", "client", cmd, msg)
 	end
 end
@@ -157,7 +157,7 @@ end
 
 local recv_loop = function(fd)
 
-	skynet.error("socket connected " .. fd)
+	log.info("socket connected " .. fd)
 	socket.start(fd)
 	local readbuff = ""
 
@@ -168,7 +168,6 @@ local recv_loop = function(fd)
 			readbuff = readbuff .. recvstr
 			readbuff = process_buff(fd, readbuff)
 		else
-			skynet.error("socket close " .. fd)
 			disconnect(fd)
 			socket.close(fd)
 			return
@@ -200,7 +199,7 @@ local connent = function(fd, addr)
 	if closing then
 		return
 	end
-	skynet.error("connentc from:", fd, addr)
+	log.info("connentc from:", fd, addr)
 
 	local c = conn()
 	conns[fd] = c
@@ -215,7 +214,7 @@ function s.init()
 	local port = nodecfg.gateway[s.id].port
 
 	local listenfd = socket.listen("0.0.0.0", port)
-	skynet.error("listen socket " .. "0.0.0.0,", port)
+	log.info("listen socket " .. "0.0.0.0,", port)
 	socket.start(listenfd, connent)
 end
 

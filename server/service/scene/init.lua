@@ -2,6 +2,7 @@ local skynet = require "skynet"
 local s = require "service"
 local protocol = require "protocol"
 local pb = require "protobuf"
+local log = require "log"
 pb.register_file("/root/workspace/git_project/XiaoxiaoleOnline/server/proto/client_msg.pb")
 
 s.client = {}
@@ -16,7 +17,7 @@ s.resp.client = function(source, cmd, msg)
 			skynet.send(source, "lua", "send", s.id, ret_msg, ret_cmd)
 		end
 	else
-		skynet.error("s.resp.client fail", cmd)
+		log.error("s.resp.client fail", cmd)
 	end
 end
 
@@ -161,7 +162,7 @@ s.init = function()
 			frame = frame + 1
 			local isok, err = pcall(update, frame)
 			if not isok then
-				skynet.error(err)
+				log.error(err)
 			end
 			local etime = skynet.now()
 			local waittime = frame * 10 - (etime - stime)

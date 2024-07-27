@@ -22,8 +22,9 @@ function get_log_format(str_type)
 
 	local path, line = get_src_line(4)
 	local now = os.time()
-	local date = time.date(now)
-	local log_format = string.format("[%s] %s %s:%d", str_type, date, path, line)
+	--local date = time.date(now)
+	--local log_format = string.format("[%s] %s %s:%d", str_type, date, path, line)
+	local log_format = string.format("[%s] %s:%d", str_type, path, line)
 
 	return log_format
 end

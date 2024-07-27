@@ -2,6 +2,7 @@ local skynet = require "skynet"
 local socket = require "skynet.socket"
 local s = require "service"
 local runconfig = require "runconfig"
+local log = require "log"
 
 require "skynet.manager"
 
@@ -18,7 +19,7 @@ function shutdown_gate()
 		local nodecfg = runconfig[node]
 		for i, v in pairs(nodecfg.gateway or {}) do
 			local name = "gateway" .. i
-			skynet.error("正在关闭网关服:", name)
+			log.info("正在关闭网关服:", name)
 			s.call(node, name, "shutdown")
 		end
 	end
@@ -27,7 +28,7 @@ end
 function shutdown_agent()
 
 	local anode = runconfig.agentmgr.node
-	skynet.error("正在关闭代理管理服:", name)
+	log.info("正在关闭代理管理服:", name)
 	while true do
 		local online_num = s.call(anode, "agentmgr", "shutdown", 3)
 		if online_num <= 0 then

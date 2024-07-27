@@ -1,6 +1,7 @@
 local skynet = require "skynet"
 local s = require "service"
 local protocol = require "protocol"
+local log = require "log"
 local pb = require "protobuf"
 pb.register_file("/root/workspace/git_project/XiaoxiaoleOnline/server/proto/client_msg.pb")
 
@@ -20,7 +21,7 @@ s.resp.client = function(source, cmd, msg)
 			skynet.send(source, "lua", "send", s.id, ret_msg, ret_cmd)
 		end
 	else
-		skynet.error("s.resp.client fail", cmd)
+		log.debug("s.resp.client fail", cmd)
 	end
 end
 

@@ -1,5 +1,6 @@
 local skynet = require "skynet"
 local s = require "service"
+local log = require "log"
 
 STATUS = {
 	LOGIN = 2,
@@ -45,7 +46,7 @@ s.resp.shutdown = function(source, num)
 	while true do
 		skynet.sleep(1)
 		local new_count = get_online_count()
-		skynet.error("shutdown online:" .. new_count)
+		log.info("shutdown online:" .. new_count)
 		if new_count <= 0 or new_count <= count - num then
 			return new_count
 		end
@@ -55,14 +56,13 @@ end
 s.resp.reqlogin = function(source, playerid, node, gate)
 	
 	local mplayer = players[playerid]
-	skynet.error("xxxxx1", source, node, gate, playerid, mplayer)
 	if mplayer and mplayer.status == STATUS.LOGOUT then
-		skynet.error("reqlogin fail, at status LOGOUT " .. playerid)
+		log.info("reqlogin fail, at status LOGOUT " .. playerid)
 		return false
 	end
 
 	if mplayer and mplayer.status == STATUS.LOGIN then
-		skynet.error("reqlogin fail, at status LOGIN " .. playerid)
+		log.info("reqlogin fail, at status LOGIN " .. playerid)
 		return false
 	end
 

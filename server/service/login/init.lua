@@ -2,18 +2,19 @@ local skynet = require "skynet"
 local s = require "service"
 local protocol = require "protocol"
 local pb = require "protobuf"
+local log = require "log"
 pb.register_file("/root/workspace/git_project/XiaoxiaoleOnline/server/proto/client_msg.pb")
 
 s.client = {}
 s.resp.client = function(source, fd, cmd, msg)
 
-	skynet.error("s.resp.client ", source, fd, cmd, msg)
+	log.debug("s.resp.client ", source, fd, cmd, msg)
 	local cmd_name = protocol.GetProtocolName(cmd)
 	if s.client[cmd_name] then
 		local ret_msg = s.client[cmd_name](fd, msg, source, cmd_name, cmd)
 		skynet.send(source, "lua", "send_by_fd", fd, ret_msg, cmd)
 	else
-		skynet.error("s.resp.client fail", cmd)
+		log.error("s.resp.client fail", cmd)
 	end
 end
 
@@ -50,7 +51,7 @@ s.client.ReqLogin = function(fd, msg, source, cmd_name)
 		local pb_reply = pb.encode(reply_name, reply)
 		return pb_reply
 	end
-	skynet.error("login succ" .. playerid)
+	log.debug("login succ" .. playerid)
 	reply.code = 0
 	reply.result = "登录成功"
 	local pb_reply = pb.encode(reply_name, reply)
