@@ -1,5 +1,10 @@
 return {
 	
+	daemon = true,
+	logpath = "/root/workspace/git_project/XiaoxiaoleOnline/server/log/skynet_log",
+	auto_relog = true,
+	sighup_file = "/root/workspace/git_project/XiaoxiaoleOnline/server/sighup_file",
+	
 	cluster = {
 		node1 = "127.0.0.1:7771",
 		--node2 = "127.0.0.1:7772",
@@ -10,6 +15,8 @@ return {
 
 	-- 管理员服,唯一服,配置它在哪个节点启动
 	admin = {node = "node1", port = 8888},
+
+	log = {node = "node1"},
 
 	scene = {
 		node1 = {1001, 1002},

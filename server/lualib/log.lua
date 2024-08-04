@@ -31,8 +31,7 @@ end
 
 function M.debug(...)
 	local log_format = get_log_format("DEBUG")
-	print(log_format, ...)
-	--skynet.error(log_format, ...)
+	skynet.error(log_format, ...)
 end
 
 function M.warn(...)

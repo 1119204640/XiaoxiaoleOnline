@@ -44,6 +44,12 @@ skynet.start(function()
 		skynet.name("admin", proxy)
 	end
 
+	local daemon = runconfig.daemon
+	if daemon then
+		local srv = skynet.newservice("log", "log", 0)
+		skynet.name("log", srv)
+	end
+
 	for _, sid in pairs(runconfig.scene[mynode] or {}) do
 		local srv = skynet.newservice("scene", "scene", sid)
 		skynet.name("scene" .. sid, srv)

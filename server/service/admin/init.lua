@@ -38,11 +38,24 @@ function shutdown_agent()
 	end
 end
 
-function stop()
+function s.resp.stop()
 
 	shutdown_gate()
 	shutdown_agent()
 	skynet.abort()
+
+	return "ok"
+end
+
+s.CMD = {}
+
+function s.CMD.stop(socket)
+
+	socket.write(fd, "正在关闭服务器\r\n")
+	shutdown_gate()
+	shutdown_agent()
+	skynet.abort()
+	socket.write(fd, "关闭服务器成功\r\n")
 
 	return "ok"
 end
@@ -52,10 +65,10 @@ function connect(fd, addr)
 	socket.start(fd)
 	--socket.write(fd, "Please enter cmd\r\n")
 	local cmd = socket.readline(fd, "\r\n")
-	if cmd == "stop" then
-		socket.write(fd, "正在关闭服务器\r\n")
-		stop()
-		socket.write(fd, "关闭服务器成功\r\n")
+	if s.CMD[cmd] then
+		s.CMD[cmd](socket)
+	else
+		socket.write(fd, "请输入正确指令\r\n")
 	end
 end
 

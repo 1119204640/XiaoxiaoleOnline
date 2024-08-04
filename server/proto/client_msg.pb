@@ -1,10 +1,10 @@
 
-ˇ
+ç
 client_msg.proto
-client_msg"*
+client_msg",
 ReqLogin
-id (Rid
-pw (	Rpw"6
+id (Rid
+pwd (	Rpwd"6
 ResLogin
 code (Rcode
 result (	Rresult"
@@ -52,4 +52,11 @@ InfAddFood&
 InfEatFood
 id (Rid
 fid (Rfid
-size (Rsize
+size (Rsize"3
+ReqRegister
+name (Rname
+pwd (	Rpwd"U
+ResRegister
+code (Rcode
+result (	Rresult
+playerid (Rplayerid

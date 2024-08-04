@@ -3,7 +3,7 @@ package client_msg;
 // cmd:1
 message ReqLogin {
 	required int32 id = 1;
-	required string pw = 2;
+	required string pwd = 2;
 }
 
 // cmd:2
@@ -99,4 +99,17 @@ message InfEatFood {
 	optional int32 id = 1;
 	optional int32 fid = 2;
 	optional int32 size = 3;
+}
+
+// cmd:16
+message ReqRegister {
+	required int32 name = 1;
+	required string pwd = 2;
+}
+
+// cmd:17
+message ResRegister {
+	optional int32 code = 1; //0:注册成功，1：注册失败
+	optional string result = 2; //原因
+	optional int32 playerid = 3; //id,为0表示失败
 }

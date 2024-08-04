@@ -1,11 +1,7 @@
 #!/bin/sh
 
-cmd="stop"
-ip="127.0.0.1"
-port="8888"
-
-{
-	sleep 1
-	echo "$cmd"
-	sleep 1
-}|telnet $ip $port
+#通过信号进行关服
+echo "stop" > sighup_file
+kill -1 $(cat skynet.pid)
+sleep 1
+echo "" > sighup_file

@@ -13,7 +13,10 @@ lua_cpath = "./luaclib/?.so;" .. "./skynet/luaclib/?.so"
 
 -- 后台模式
 daemon = "./skynet.pid"
-logger = "./userlog"
+
+logger = "log"
+logservice = "snlua"
+logpath = "./log/skynet_log"
 
 -- 节点
 node = "node1"

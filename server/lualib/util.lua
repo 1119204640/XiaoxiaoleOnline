@@ -1,4 +1,4 @@
-util = {}
+local util = {}
 
 -- 协议格式,2字节的长度+4字节的协议ID+协议体(protobuf)
 util.msg_unpack = function(readbuff)
@@ -32,6 +32,23 @@ util.msg_pack = function(cmd, msg)
 	local buff = string.pack(str_format, len, cmd, msg)
 
 	return buff
+end
+
+util.get_first_line = function(file)
+
+	local f = io.open(file, "r")
+    if not f then
+        return
+    end
+
+    local first_line = f:read("l")
+    f:close()
+    return first_line
+end
+
+util.trim = function(str)
+
+	return str:match("^%s*(.-)%s*$")
 end
 
 return util

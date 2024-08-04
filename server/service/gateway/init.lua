@@ -122,11 +122,10 @@ end
 
 local process_msg = function(fd, cmd, msg)
 
-	log.info("recv " .. fd .. " [" .. cmd .. "] ")
-
 	local conn = conns[fd]
 	local playerid = conn.playerid
 
+	log.info("recv " .. fd .. " [" .. cmd .. "] " .. "playerid:" .. (playerid and tostring(playerid) or "nil"))
 	if not playerid then
 		local node = skynet.getenv("node")
 		local nodecfg = runconfig[node]
